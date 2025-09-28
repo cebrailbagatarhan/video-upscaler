@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  buildozer:
+    image: kivy/buildozer:latest
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: |
+      bash -c "
+        apt-get update &&
+        apt-get install -y python3-pip &&
+        pip3 install kivy &&
+        buildozer android debug
+      "
+    environment:
+      - ANDROID_HOME=/home/user/.buildozer/android/platform/android-sdk
+      - ANDROID_SDK_ROOT=/home/user/.buildozer/android/platform/android-sdk
