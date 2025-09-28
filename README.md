@@ -2,6 +2,9 @@
 
 Professional video and photo upscaling application for Android devices.
 
+## Build Status
+🚀 Building APK via GitHub Actions...
+
 ## Features
 
 ✅ **Video Upscaling**
