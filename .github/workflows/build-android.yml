@@ -23,7 +23,15 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev build-essential
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev build-essential android-sdk-platform-tools-common android-tools-adb android-tools-fastboot
+        
+    - name: Set up Android SDK environment
+      run: |
+        sudo mkdir -p /usr/lib/android-sdk
+        sudo chown -R $USER:$USER /usr/lib/android-sdk
+        echo "ANDROID_HOME=/usr/lib/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=/usr/lib/android-sdk" >> $GITHUB_ENV
+        echo "PATH=/usr/lib/android-sdk/platform-tools:/usr/lib/android-sdk/tools:/usr/lib/android-sdk/tools/bin:$PATH" >> $GITHUB_ENV
         
     - name: Set JAVA_HOME
       run: |
@@ -37,12 +45,19 @@ jobs:
         pip install cython==0.29.33
         pip install kivy[base]
         
+    - name: Initialize buildozer
+      run: |
+        mkdir -p ~/.buildozer
+        buildozer init || echo "Buildozer already initialized"
+        
     - name: Make buildozer directory
       run: mkdir -p ~/.buildozer
         
-    - name: Build APK only (simpler approach)
+    - name: Build APK with detailed logging
       run: |
         buildozer android debug --verbose
+      env:
+        ANDROID_ACCEPT_SDK_LICENSE: 1
         
     - name: Upload APK
       uses: actions/upload-artifact@v4

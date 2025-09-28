@@ -78,13 +78,13 @@ warn_on_root = 1
 #android.whitelist =
 
 # (str) Android NDK version to use
-android.ndk = 25b
+android.ndk = 23c
 
 # (str) Android SDK version to use
-android.sdk = 33
+android.sdk = 31
 
 # (str) Android API level to target
-android.api = 33
+android.api = 31
 
 # (str) Minimum API level
 android.minapi = 21
