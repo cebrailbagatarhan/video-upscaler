@@ -1,0 +1,70 @@
+name: Build Android APK and AAB
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Manuel çalıştırma için
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'  # Buildozer için daha kararlı versiyon
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install buildozer cython==0.29.33 kivy kivymd pillow plyer
+        
+    - name: Cache Buildozer global directory
+      uses: actions/cache@v3
+      with:
+        path: .buildozer_global
+        key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+        
+    - name: Cache Buildozer directory
+      uses: actions/cache@v3
+      with:
+        path: .buildozer
+        key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+        
+    - name: Build APK
+      run: |
+        # Debug APK oluştur
+        buildozer android debug
+        
+    - name: Build AAB
+      run: |
+        # Release AAB oluştur
+        buildozer android release
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-apk
+        path: bin/*.apk
+        
+    - name: Upload AAB
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-aab
+        path: bin/*.aab
+        
+    - name: List built files
+      run: |
+        echo "Built files:"
+        ls -la bin/
