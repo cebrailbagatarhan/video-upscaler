@@ -23,41 +23,39 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev build-essential android-sdk-platform-tools-common android-tools-adb android-tools-fastboot
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev build-essential
         
-    - name: Set up Android SDK environment
+    - name: Set up Android SDK environment variables
       run: |
-        sudo mkdir -p /usr/lib/android-sdk
-        sudo chown -R $USER:$USER /usr/lib/android-sdk
-        echo "ANDROID_HOME=/usr/lib/android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_SDK_ROOT=/usr/lib/android-sdk" >> $GITHUB_ENV
-        echo "PATH=/usr/lib/android-sdk/platform-tools:/usr/lib/android-sdk/tools:/usr/lib/android-sdk/tools/bin:$PATH" >> $GITHUB_ENV
+        echo "ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$HOME/.buildozer/android/platform/android-sdk/tools:$HOME/.buildozer/android/platform/android-sdk/tools/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
         
     - name: Set JAVA_HOME
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
         echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
         
-    - name: Install Buildozer
+    - name: Install Buildozer and dependencies
       run: |
         python -m pip install --upgrade pip wheel setuptools
-        pip install buildozer
+        pip install buildozer==1.5.0
         pip install cython==0.29.33
-        pip install kivy[base]
+        pip install kivy[base]==2.1.0
+        pip install colorama pexpect jinja2
         
-    - name: Initialize buildozer
+    - name: Accept Android SDK licenses
       run: |
-        mkdir -p ~/.buildozer
-        buildozer init || echo "Buildozer already initialized"
+        mkdir -p ~/.android
+        echo 'count=0' > ~/.android/repositories.cfg
+        yes | sudo apt install -y android-sdk || true
         
-    - name: Make buildozer directory
-      run: mkdir -p ~/.buildozer
-        
-    - name: Build APK with detailed logging
+    - name: Build APK with buildozer
       run: |
         buildozer android debug --verbose
       env:
-        ANDROID_ACCEPT_SDK_LICENSE: 1
+        ANDROID_ACCEPT_SDK_LICENSE: "y"
+        BUILDOZER_LOG_LEVEL: 2
         
     - name: Upload APK
       uses: actions/upload-artifact@v4

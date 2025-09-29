@@ -78,16 +78,36 @@ warn_on_root = 1
 #android.whitelist =
 
 # (str) Android NDK version to use
-android.ndk = 23c
+android.ndk = 21e
 
 # (str) Android SDK version to use
-android.sdk = 31
+android.sdk = 28
 
 # (str) Android API level to target
-android.api = 31
+android.api = 28
 
 # (str) Minimum API level
 android.minapi = 21
+
+# (bool) Use --private data storage (True) or --dir public storage (False)
+android.private_storage = True
+
+# (str) Android NDK path (if empty, it will be automatically downloaded.)
+#android.ndk_path =
+
+# (str) Android SDK path (if empty, it will be automatically downloaded.)
+#android.sdk_path =
+
+# (bool) If True, then skip trying to update the Android sdk
+# This can be useful to avoid excess Internet downloads or save time
+# when an update is due and you just want to test/build your package
+android.skip_update = False
+
+# (bool) If True, then automatically accept SDK license
+# agreements. This is intended for automation only. If set to False,
+# the default, you will be shown the license when first running
+# buildozer.
+android.accept_sdk_license = True
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.archs = arm64-v8a, armeabi-v7a
