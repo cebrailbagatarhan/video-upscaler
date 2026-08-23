@@ -136,17 +136,12 @@ android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 # (str) Android signing mode: debug or release
 android.release_artifact = aab
 
-# (str) Path to a custom keystore for the release build
-android.release_keystore = video-upscaler-release.keystore
+# Release signing credentials are intentionally not stored in this file.
+# Set P4A_RELEASE_KEYSTORE, P4A_RELEASE_KEYSTORE_PASSWD,
+# P4A_RELEASE_KEYALIAS, and P4A_RELEASE_KEYALIAS_PASSWD in the local/CI environment.
 
-# (str) Password for the keystore
-android.release_keystore_passwd = cebrail23
 
-# (str) Key alias for the keystore
-android.release_key_alias = video_upscaler_alias
 
-# (str) Password for the key
-android.release_key_passwd = cebrail23
 
 [gradle]
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
@@ -159,3 +154,5 @@ android.gradle_repositories = google(), mavenCentral()
 
 # (str) Gradle dependencies
 android.gradle_dependencies = androidx.appcompat:appcompat:1.4.2, androidx.core:core:1.8.0
+
+

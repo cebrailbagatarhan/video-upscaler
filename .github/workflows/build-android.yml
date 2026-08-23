@@ -1,48 +1,33 @@
-name: Build Android APK
+name: Validate Android source
 
 on:
-  workflow_dispatch:  # Sadece manuel trigger
+  pull_request:
   push:
-    paths:
-      - 'main.py'
-      - 'buildozer.spec'
-      - '.github/workflows/**'
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  build-android:
-    runs-on: ubuntu-latest  # En basit runner
-    timeout-minutes: 60     # 1 saat timeout
-    
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3  # Daha eski, stabil versiyon
-      
-    - name: Setup environment
-      run: |
-        echo "🚀 Starting APK build process..."
-        echo "Repository: ${{ github.repository }}"
-        echo "Commit: ${{ github.sha }}"
-        
-    - name: Create simple APK info
-      run: |
-        mkdir -p artifacts
-        echo "Video Upscaler APK Build Info" > artifacts/build_info.txt
-        echo "Build Date: $(date)" >> artifacts/build_info.txt
-        echo "Commit: ${{ github.sha }}" >> artifacts/build_info.txt
-        echo "Repository: ${{ github.repository }}" >> artifacts/build_info.txt
-        echo "" >> artifacts/build_info.txt
-        echo "APK build requires specialized Android environment." >> artifacts/build_info.txt
-        echo "Consider using:" >> artifacts/build_info.txt
-        echo "1. Local WSL with buildozer" >> artifacts/build_info.txt
-        echo "2. GitPod cloud environment" >> artifacts/build_info.txt
-        echo "3. GitHub Codespaces" >> artifacts/build_info.txt
-        
-        # Proje dosyalarını da kopyalayalım
-        cp main.py artifacts/ 2>/dev/null || echo "main.py not found"
-        cp buildozer.spec artifacts/ 2>/dev/null || echo "buildozer.spec not found"
-        
-    - name: Upload build info
-      uses: actions/upload-artifact@v3
-      with:
-        name: apk-build-info
-        path: artifacts/
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Reject tracked signing material and generated binaries
+        run: python scripts/check_release_secrets.py
+
+      - name: Compile Python sources
+        run: python -m py_compile 1.py main.py video_upscaler_kivy.py scripts/check_release_secrets.py
+
+      - name: Validate release shell script
+        run: bash -n build_playstore.sh
+

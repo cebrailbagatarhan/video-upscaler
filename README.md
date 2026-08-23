@@ -1,55 +1,88 @@
-# Video Photo Upscaler
+# Video Resolution Scaler — FFmpeg/Lanczos
 
-Professional video and photo upscaling application for Android devices.
+Yerel video ve fotoğraf dosyalarının çıktı çözünürlüğünü FFmpeg'in Lanczos filtresiyle değiştiren deneysel masaüstü/Android arayüzü.
 
-## Build Status
-🚀 Building APK via GitHub Actions...
+> [!IMPORTANT]
+> Bu proje **AI upscaler veya super-resolution modeli değildir**. Kodda Real-ESRGAN, SwinIR ya da öğrenilmiş bir restorasyon ağı yoktur. `scale=...:flags=lanczos` ile klasik yeniden örnekleme yapar. 720p bir videoyu 4K boyutlarına çıkarmak yeni gerçek detay üretmez.
 
-## Features
+## Ne yapıyor?
 
-✅ **Video Upscaling**
-- Support for multiple video formats (MP4, AVI, MKV)
-- Resolution options: 4K, 1440p, 1080p, 720p, 480p
-- High-quality Lanczos scaling algorithm
+| Alan | Mevcut uygulama |
+| --- | --- |
+| Video ölçekleme | FFmpeg `scale` filtresi + Lanczos |
+| Fotoğraf ölçekleme | FFmpeg `scale` filtresi + Lanczos |
+| UI | Kivy; ayrıca eski Tkinter prototipi (`1.py`) |
+| İşleme | Yerel cihazda subprocess ile FFmpeg |
+| AI inference | Yok |
+| Kalite benchmark'ı | Henüz yok |
 
-✅ **Photo Upscaling** 
-- Support for image formats (JPG, PNG, BMP, TIFF)
-- Megapixel options: 12MP, 8MP, 5MP, 3MP, 2MP
-- Professional quality enhancement
+Desteklenen formatlar kullanılan FFmpeg build'ine bağlıdır. UI; MP4/AVI/MKV/MOV/WMV ve JPG/JPEG/PNG/BMP/TIFF uzantılarını seçmeye izin verir, fakat codec uyumluluğu ayrıca test edilmelidir.
 
-✅ **User-Friendly Interface**
-- Modern Material Design
-- Easy file selection
-- Progress tracking
-- Multiple language support
+## Yerel kullanım
 
-## Supported Formats
+Python ve FFmpeg kurulu olmalıdır:
 
-**Video:** MP4, AVI, MKV, MOV, WMV
-**Photo:** JPG, JPEG, PNG, BMP, TIFF
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows PowerShell: .\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python main.py
+```
 
-## System Requirements
+FFmpeg'in `PATH` üzerinde olduğunu doğrulayın:
 
-- Android 5.0 (API level 21) or higher
-- Storage space for processing
-- FFmpeg support
+```bash
+ffmpeg -version
+```
 
-## Privacy Policy
+## Android build durumu
 
-This app processes files locally on your device. No data is sent to external servers.
+GitHub Actions akışı APK üretildiğini iddia etmez; yalnızca kaynak sentaksını ve release-secret hijyenini doğrular. Android/Kivy paketleme için Linux/WSL, Java, Android SDK/NDK ve Buildozer gerekir.
 
-## Version History
+Debug build:
 
-### v1.0
-- Initial release
-- Video and photo upscaling
-- Multiple resolution options
-- Material Design interface
+```bash
+buildozer android debug
+```
 
-## Support
+Release build için imzalama bilgileri repoda tutulmaz. `build_playstore.sh` şu ortam değişkenlerini zorunlu kılar:
 
-For support and feature requests, please contact: support@videoupscaler.com
+```bash
+export P4A_RELEASE_KEYSTORE=/secure/outside-repo/upload-key.keystore
+export P4A_RELEASE_KEYSTORE_PASSWD='...'
+export P4A_RELEASE_KEYALIAS='...'
+export P4A_RELEASE_KEYALIAS_PASSWD='...'
+./build_playstore.sh
+```
 
-## License
+Değerleri shell history'ye yazmak yerine yerel secret manager veya CI secret store kullanın. Keystore dosyasını repo dışında saklayın. Üretilen `.apk`/`.aab` dosyaları kaynak kontrolüne değil release artifact alanına gönderilmelidir.
 
-Licensed under MIT License.
+## Güvenlik
+
+Release keystore, signing password veya imzalı binary commit edilmemelidir. Kontrol:
+
+```bash
+python scripts/check_release_secrets.py
+```
+
+Geçmişte repoya eklenmiş bir signing key yalnızca son commit'ten silinerek güvenli hale gelmez; kullanıldıysa compromised kabul edilmeli ve rotate edilmelidir. Ayrıntı için [`SECURITY.md`](SECURITY.md) dosyasına bakın.
+
+## Kaliteyi nasıl ölçmeli?
+
+Lanczos için dürüst baseline:
+
+- aynı kaynak klip/fotoğraf ve aynı hedef çözünürlük
+- süre, CPU/RAM kullanımı ve çıktı boyutu
+- bilinen yüksek çözünürlüklü referanstan oluşturulan düşük çözünürlüklü giriş
+- PSNR ve SSIM; algısal karşılaştırma için LPIPS
+
+AI özelliği eklenecekse Real-ESRGAN/SwinIR gibi model adı, ağırlık lisansı, checkpoint hash'i ve cihaz açıkça yazılmalı; aynı girişlerde Lanczos'a karşı kalite ve hız tablosu yayımlanmalıdır. Bu ölçümler yapılmadan “professional enhancement” veya “AI quality” iddiası kullanılmamalıdır.
+
+## Sınırlamalar
+
+- Klasik scaling sıkıştırma artefaktlarını veya bulanıklığı güvenilir biçimde geri getirmez.
+- Büyük çözünürlükler işlem süresi ve depolama maliyetini ciddi biçimde artırabilir.
+- Android cihazda FFmpeg binary/codec bulunabilirliği build'e bağlıdır.
+- Repo şu anda doğrulanmış APK/AAB üretim pipeline'ı sunmaz.
+- Kalite ve hız için commit edilmiş benchmark sonucu yoktur.
+
