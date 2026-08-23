@@ -1,48 +1,60 @@
-name: Build Android APK
+name: Validate Android project
 
 on:
-  workflow_dispatch:  # Sadece manuel trigger
+  workflow_dispatch:
   push:
     paths:
       - 'main.py'
       - 'buildozer.spec'
+      - 'SECURITY.md'
+      - '.gitignore'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - 'main.py'
+      - 'buildozer.spec'
+      - 'SECURITY.md'
+      - '.gitignore'
       - '.github/workflows/**'
 
+permissions:
+  contents: read
+
 jobs:
-  build-android:
-    runs-on: ubuntu-latest  # En basit runner
-    timeout-minutes: 60     # 1 saat timeout
-    
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3  # Daha eski, stabil versiyon
-      
-    - name: Setup environment
-      run: |
-        echo "🚀 Starting APK build process..."
-        echo "Repository: ${{ github.repository }}"
-        echo "Commit: ${{ github.sha }}"
-        
-    - name: Create simple APK info
-      run: |
-        mkdir -p artifacts
-        echo "Video Upscaler APK Build Info" > artifacts/build_info.txt
-        echo "Build Date: $(date)" >> artifacts/build_info.txt
-        echo "Commit: ${{ github.sha }}" >> artifacts/build_info.txt
-        echo "Repository: ${{ github.repository }}" >> artifacts/build_info.txt
-        echo "" >> artifacts/build_info.txt
-        echo "APK build requires specialized Android environment." >> artifacts/build_info.txt
-        echo "Consider using:" >> artifacts/build_info.txt
-        echo "1. Local WSL with buildozer" >> artifacts/build_info.txt
-        echo "2. GitPod cloud environment" >> artifacts/build_info.txt
-        echo "3. GitHub Codespaces" >> artifacts/build_info.txt
-        
-        # Proje dosyalarını da kopyalayalım
-        cp main.py artifacts/ 2>/dev/null || echo "main.py not found"
-        cp buildozer.spec artifacts/ 2>/dev/null || echo "buildozer.spec not found"
-        
-    - name: Upload build info
-      uses: actions/upload-artifact@v3
-      with:
-        name: apk-build-info
-        path: artifacts/
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile Python sources
+        run: python -m compileall -q main.py
+
+      - name: Reject committed build and signing artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          tracked_artifacts="$(git ls-files '*.keystore' '*.jks' '*.apk' '*.aab')"
+          if [[ -n "$tracked_artifacts" ]]; then
+            echo "Tracked build/signing artifacts are forbidden:"
+            echo "$tracked_artifacts"
+            exit 1
+          fi
+
+      - name: Reject signing credentials in Buildozer config
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -E '^[[:space:]]*android\.release_(keystore|keystore_passwd|key_alias|key_passwd)[[:space:]]*=' -- buildozer.spec; then
+            echo "Release signing configuration must come from protected secrets."
+            exit 1
+          fi
