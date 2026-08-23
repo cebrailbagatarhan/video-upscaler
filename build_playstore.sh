@@ -1,67 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Play Store için AAB (Android App Bundle) oluşturma script'i
-echo "=== Play Store Release Builder ==="
-echo ""
+required_variables=(
+  P4A_RELEASE_KEYSTORE
+  P4A_RELEASE_KEYSTORE_PASSWD
+  P4A_RELEASE_KEYALIAS
+  P4A_RELEASE_KEYALIAS_PASSWD
+)
 
-# Gerekli kontroller
-if [ ! -f "buildozer.spec" ]; then
-    echo "❌ HATA: buildozer.spec dosyası bulunamadı!"
+for variable_name in "${required_variables[@]}"; do
+  if [[ -z "${!variable_name:-}" ]]; then
+    echo "Missing required release signing environment variable: ${variable_name}" >&2
     exit 1
+  fi
+done
+
+if [[ ! -f "${P4A_RELEASE_KEYSTORE}" ]]; then
+  echo "Release keystore does not exist: ${P4A_RELEASE_KEYSTORE}" >&2
+  exit 1
 fi
 
-if [ ! -f "main.py" ]; then
-    echo "❌ HATA: main.py dosyası bulunamadı!"
-    exit 1
+if git ls-files --error-unmatch -- "${P4A_RELEASE_KEYSTORE}" >/dev/null 2>&1; then
+  echo "Refusing to use a release keystore tracked by Git." >&2
+  exit 1
 fi
 
-echo "📦 Play Store uyumlu AAB dosyası oluşturuluyor..."
-echo ""
+python scripts/check_release_secrets.py
 
-# Önceki build'leri temizle
-echo "🧹 Önceki build dosyaları temizleniyor..."
+echo "Cleaning previous Buildozer output..."
 buildozer android clean
 
-# Release AAB oluştur (Play Store için)
-echo "🚀 Release AAB oluşturuluyor..."
-echo "⚠️  Bu işlem 30-60 dakika sürebilir!"
-echo ""
-
+echo "Building a release artifact with signing values supplied by the environment..."
 buildozer android release
 
-if [ $? -eq 0 ]; then
-    echo ""
-    echo "✅ Play Store uyumlu AAB başarıyla oluşturuldu!"
-    echo ""
-    echo "📁 AAB dosyası: bin/ klasöründe"
-    echo "📱 Dosya formatı: .aab (Android App Bundle)"
-    echo ""
-    echo "🎯 Play Store'a yükleme adımları:"
-    echo "1. Google Play Console'a giriş yapın"
-    echo "2. Yeni uygulama oluşturun"
-    echo "3. AAB dosyasını yükleyin"
-    echo "4. Store listing bilgilerini doldurun"
-    echo "5. İnceleme için gönderin"
-    echo ""
-    echo "📋 Gerekli Play Store bilgileri:"
-    echo "- Uygulama adı: Video Photo Upscaler"
-    echo "- Kategori: Photography"
-    echo "- Hedef kitle: 13+ yaş"
-    echo "- Açıklama: README.md dosyasında mevcut"
-    echo ""
-    ls -la bin/*.aab
-else
-    echo ""
-    echo "❌ AAB oluşturulurken hata oluştu!"
-    echo ""
-    echo "🔧 Sorun giderme önerileri:"
-    echo "1. Java 8 kurulu olduğundan emin olun"
-    echo "2. Android SDK güncel olduğundan emin olun"
-    echo "3. buildozer android clean komutu ile temizleyin"
-    echo "4. Hata loglarını inceleyin"
-fi
+echo "Release build completed. Inspect bin/ and verify the signature before upload."
 
-echo ""
-echo "📚 Daha fazla bilgi:"
-echo "- Play Console: https://play.google.com/console"
-echo "- AAB Rehberi: https://developer.android.com/guide/app-bundle"
