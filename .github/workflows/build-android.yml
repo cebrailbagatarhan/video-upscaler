@@ -1,21 +1,10 @@
 name: Validate Android project
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'main.py'
-      - 'buildozer.spec'
-      - 'SECURITY.md'
-      - '.gitignore'
-      - '.github/workflows/**'
   pull_request:
-    paths:
-      - 'main.py'
-      - 'buildozer.spec'
-      - 'SECURITY.md'
-      - '.gitignore'
-      - '.github/workflows/**'
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -26,7 +15,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
+      - name: Check out source
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -34,27 +23,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
+
+      - name: Reject tracked signing material and build artifacts
+        run: python scripts/check_release_secrets.py
 
       - name: Compile Python sources
-        run: python -m compileall -q main.py
+        run: python -m py_compile 1.py main.py video_upscaler_kivy.py scripts/check_release_secrets.py
 
-      - name: Reject committed build and signing artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          tracked_artifacts="$(git ls-files '*.keystore' '*.jks' '*.apk' '*.aab')"
-          if [[ -n "$tracked_artifacts" ]]; then
-            echo "Tracked build/signing artifacts are forbidden:"
-            echo "$tracked_artifacts"
-            exit 1
-          fi
+      - name: Validate release shell script
+        run: bash -n build_playstore.sh
 
-      - name: Reject signing credentials in Buildozer config
-        shell: bash
+      - name: Install image dependency
+        run: python -m pip install 'Pillow>=9.1,<13.0'
+
+      - name: Test aspect-ratio-preserving Lanczos resize
         run: |
-          set -euo pipefail
-          if git grep -n -E '^[[:space:]]*android\.release_(keystore|keystore_passwd|key_alias|key_passwd)[[:space:]]*=' -- buildozer.spec; then
-            echo "Release signing configuration must come from protected secrets."
-            exit 1
-          fi
+          python - <<'PY'
+          from PIL import Image, ImageOps
+
+          source = Image.new('RGB', (100, 50), 'red')
+          result = ImageOps.contain(
+              source,
+              (200, 200),
+              method=Image.Resampling.LANCZOS,
+          )
+          assert result.size == (200, 100)
+          PY

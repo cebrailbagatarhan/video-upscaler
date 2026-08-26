@@ -10,6 +10,7 @@ bin/
 *.aab
 *.keystore
 *.jks
+*.p12
 keystore.properties
 
 # Local configuration and secrets
@@ -19,6 +20,7 @@ keystore.properties
 
 # Generated bundles
 github_upload.zip
+*.zip
 
 # Editors / operating systems
 .idea/
