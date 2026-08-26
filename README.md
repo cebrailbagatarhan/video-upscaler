@@ -1,55 +1,60 @@
-# Video Photo Upscaler
+# Video Photo Resizer
 
-Professional video and photo upscaling application for Android devices.
+Kivy tabanlı bir Lanczos yeniden örnekleme uygulaması. Bu proje bir yapay zekâ
+veya super-resolution modeli içermez; yeni ayrıntı üretmez. Fotoğrafları Pillow
+ile, masaüstündeki videoları ise sistemde kurulu FFmpeg ile daha büyük ya da
+daha küçük çözünürlüklere ölçekler.
 
-## Build Status
-🚀 Building APK via GitHub Actions...
+## Gerçek yetenekler
 
-## Features
+- Fotoğraf: JPG, JPEG, PNG, BMP ve TIFF; Pillow/Lanczos ile en-boy oranını korur.
+- Video (masaüstü): FFmpeg bulunduğunda MP4, AVI, MKV, MOV, WMV ve FLV girdileri;
+  Lanczos ölçekleme, H.264 video ve AAC ses çıktısı.
+- İşlem cihazda çalışır; uygulama kodunda yükleme veya analiz servisi yoktur.
+- Tek dosya işlenir. Batch processing, AI enhancement ve gerçek zamanlı
+  ilerleme göstergesi henüz yoktur.
 
-✅ **Video Upscaling**
-- Support for multiple video formats (MP4, AVI, MKV)
-- Resolution options: 4K, 1440p, 1080p, 720p, 480p
-- High-quality Lanczos scaling algorithm
+Ölçekleme, kaynak görüntünün gerçek ayrıntısını artırmaz. Düşük çözünürlüklü
+girdiler büyütüldüğünde daha fazla piksel elde edilir; daha fazla gerçek bilgi
+elde edilmez.
 
-✅ **Photo Upscaling** 
-- Support for image formats (JPG, PNG, BMP, TIFF)
-- Megapixel options: 12MP, 8MP, 5MP, 3MP, 2MP
-- Professional quality enhancement
+## Masaüstünde çalıştırma
 
-✅ **User-Friendly Interface**
-- Modern Material Design
-- Easy file selection
-- Progress tracking
-- Multiple language support
+```bash
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
 
-## Supported Formats
+Video işleme için `ffmpeg` çalıştırılabilir dosyası ayrıca kurulmalı ve PATH
+içinde bulunmalıdır. Fotoğraf işleme FFmpeg gerektirmez.
 
-**Video:** MP4, AVI, MKV, MOV, WMV
-**Photo:** JPG, JPEG, PNG, BMP, TIFF
+## Android durumu
 
-## System Requirements
+Android paketi deneyseldir. Fotoğraf yeniden boyutlandırma Pillow ile paketlenir;
+video işleme ise APK içinde bir FFmpeg çalıştırılabilir dosyası bulunmadığından
+Android'de bilerek devre dışıdır. Uygulama bu durumu işlem başlamadan açıkça
+bildirir. Dosya erişimi ve mağaza dağıtımı fiziksel cihaz üzerinde ayrıca test
+edilmelidir.
 
-- Android 5.0 (API level 21) or higher
-- Storage space for processing
-- FFmpeg support
+`buildozer.spec` API 36'yı hedefler. Güncel Google Play gereksinimlerini ve
+python-for-android uyumluluğunu her sürüm öncesinde tekrar doğrulayın.
 
-## Privacy Policy
+```bash
+buildozer android debug
+```
 
-This app processes files locally on your device. No data is sent to external servers.
+CI şu anda APK üretmiş gibi davranmaz; yalnızca Python sözdizimini ve repoda
+imzalama/build artifact'i bulunmadığını doğrular.
 
-## Version History
+## Release güvenliği
 
-### v1.0
-- Initial release
-- Video and photo upscaling
-- Multiple resolution options
-- Material Design interface
+Release anahtarı veya parolası repoya eklenmemelidir. Önceden yayınlanmış anahtar
+compromised kabul edilmelidir. Rotasyon ve history purge adımları için
+[`SECURITY.md`](SECURITY.md) dosyasını okuyun.
 
-## Support
+## Lisans
 
-For support and feature requests, please contact: support@videoupscaler.com
-
-## License
-
-Licensed under MIT License.
+MIT License.

@@ -1,0 +1,29 @@
+# Python / Buildozer
+__pycache__/
+*.py[cod]
+.venv/
+.buildozer/
+bin/
+
+# Android build and signing material
+*.apk
+*.aab
+*.keystore
+*.jks
+*.p12
+keystore.properties
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Generated bundles
+github_upload.zip
+*.zip
+
+# Editors / operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

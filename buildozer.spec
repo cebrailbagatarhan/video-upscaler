@@ -42,10 +42,10 @@ fullscreen = 0
 author = Video Upscaler Team
 
 # (str) Application description
-description = Professional video and photo upscaling app with multiple resolution options
+description = Lanczos-based photo resizer and desktop FFmpeg video scaler
 
 # (str) Short description (max 80 characters)
-short_description = Upscale videos and photos to higher resolutions
+short_description = Resize photos and scale videos with Lanczos filtering
 
 [buildozer]
 
@@ -55,7 +55,7 @@ short_description = Upscale videos and photos to higher resolutions
 
 # (str) The path to the user's local bin directory.
 # If not set, Buildozer will try to detect it.
-user.local_bin = /home/cebra/.local/bin
+# user.local_bin is intentionally not pinned to a developer-specific path.
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
@@ -78,16 +78,13 @@ warn_on_root = 1
 #android.whitelist =
 
 # (str) Android NDK version to use
-android.ndk = 21e
-
-# (str) Android SDK version to use
-android.sdk = 28
+android.ndk = 28c
 
 # (str) Android API level to target
-android.api = 28
+android.api = 36
 
 # (str) Minimum API level
-android.minapi = 21
+android.minapi = 26
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
@@ -112,9 +109,6 @@ android.accept_sdk_license = True
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.archs = arm64-v8a, armeabi-v7a
 
-# (list) Android application meta-data to set (key=value format)
-android.meta_data = com.google.android.gms.version=@integer/google_play_services_version
-
 # (list) Android library project to add (will be added in the
 # project.properties automatically.)
 #android.library_references = @aar/some-library
@@ -131,22 +125,13 @@ android.meta_data = com.google.android.gms.version=@integer/google_play_services
 #android.add_libs_mips = libs/android-mips/*.so
 
 # (list) Permissions
-android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+android.permissions = READ_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,READ_MEDIA_VIDEO
 
 # (str) Android signing mode: debug or release
 android.release_artifact = aab
 
-# (str) Path to a custom keystore for the release build
-android.release_keystore = video-upscaler-release.keystore
-
-# (str) Password for the keystore
-android.release_keystore_passwd = cebrail23
-
-# (str) Key alias for the keystore
-android.release_key_alias = video_upscaler_alias
-
-# (str) Password for the key
-android.release_key_passwd = cebrail23
+# Signing material is deliberately absent from this tracked file. Configure a
+# rotated keystore only in a protected local/CI environment; see SECURITY.md.
 
 [gradle]
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'

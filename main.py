@@ -8,7 +8,10 @@ from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.gridlayout import GridLayout
 import subprocess
 import os
+import shutil
 from threading import Thread
+
+from PIL import Image, ImageOps
 
 __version__ = "1.0"
 
@@ -47,7 +50,7 @@ class FileChooserPopup(Popup):
         self.dismiss()
 
 class SaveFilePopup(Popup):
-    def __init__(self, callback, **kwargs):
+    def __init__(self, callback, default_filename='output.mp4', **kwargs):
         super().__init__(**kwargs)
         self.callback = callback
         
@@ -63,7 +66,7 @@ class SaveFilePopup(Popup):
             hint_text='Dosya adını girin (örn: output.mp4 veya output.jpg)',
             size_hint_y=None,
             height='48dp',
-            text='output.mp4'
+            text=default_filename
         )
         layout.add_widget(self.filename_input)
         
@@ -288,18 +291,39 @@ class VideoUploaderApp(App):
     
     def upscale_video(self, instance):
         input_path = self.input_text.text
-        if not input_path:
+        if not input_path or not os.path.isfile(input_path):
             file_type_text = 'Fotoğraf' if self.current_file_type == 'photo' else 'Video'
-            popup = MessagePopup('Hata', f'Lütfen bir {file_type_text.lower()} dosyası seçin.')
+            popup = MessagePopup('Hata', f'Lütfen geçerli bir {file_type_text.lower()} dosyası seçin.')
             popup.open()
+            return
+
+        if self.current_file_type not in {'photo', 'video'}:
+            MessagePopup('Hata', 'Desteklenmeyen dosya türü.').open()
+            return
+
+        if self.current_file_type == 'video' and shutil.which('ffmpeg') is None:
+            MessagePopup(
+                'Video işleme kullanılamıyor',
+                'Bu kurulum çalıştırılabilir bir FFmpeg içermiyor. '
+                'Masaüstünde FFmpeg kurup PATH\'e ekleyin. Android paketinde '
+                'video işleme henüz desteklenmiyor.'
+            ).open()
             return
         
         # Kaydetme konumu seç
-        save_popup = SaveFilePopup(self.on_save_location_selected)
+        default_filename = 'output.jpg' if self.current_file_type == 'photo' else 'output.mp4'
+        save_popup = SaveFilePopup(
+            self.on_save_location_selected,
+            default_filename=default_filename,
+        )
         save_popup.open()
     
     def on_save_location_selected(self, output_path):
         input_path = self.input_text.text
+
+        if os.path.abspath(input_path) == os.path.abspath(output_path):
+            MessagePopup('Hata', 'Çıktı dosyası giriş dosyasından farklı olmalıdır.').open()
+            return
         
         # Yükseltme işlemini arka planda başlat
         self.upscale_btn.disabled = True
@@ -315,45 +339,71 @@ class VideoUploaderApp(App):
         thread.start()
     
     def run_ffmpeg(self, input_path, output_path):
+        ffmpeg_path = shutil.which('ffmpeg')
+        if ffmpeg_path is None:
+            self.show_error_message('FFmpeg bulunamadı.')
+            from kivy.clock import Clock
+            Clock.schedule_once(self.reset_ui, 0)
+            return
+
+        width, height = self.selected_resolution.split(':', maxsplit=1)
         command = [
-            'ffmpeg',
+            ffmpeg_path,
+            '-nostdin',
+            '-y',
+            '-hide_banner',
+            '-loglevel', 'error',
             '-i', input_path,
-            '-vf', f'scale={self.selected_resolution}:flags=lanczos',
+            '-vf', (
+                f'scale={width}:{height}:force_original_aspect_ratio=decrease:'
+                'flags=lanczos,'
+                f'pad={width}:{height}:(ow-iw)/2:(oh-ih)/2'
+            ),
             '-c:v', 'libx264',
             '-preset', 'slow',
             '-crf', '18',
+            '-c:a', 'aac',
+            '-b:a', '192k',
+            '-movflags', '+faststart',
             output_path
         ]
         
         try:
-            subprocess.run(command, check=True)
+            subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             self.show_success_message(output_path)
-        except FileNotFoundError:
-            self.show_error_message('FFmpeg bulunamadı. Lütfen sisteminize kurup PATH\'e eklediğinizden emin olun.')
         except subprocess.CalledProcessError as e:
-            self.show_error_message(f'FFmpeg hatası oluştu: {e}')
+            details = (e.stderr or '').strip().splitlines()
+            message = details[-1] if details else 'FFmpeg işlemi başarısız oldu.'
+            self.show_error_message(f'FFmpeg hatası: {message}')
         finally:
             # UI güncellemelerini ana thread'de yap
             from kivy.clock import Clock
             Clock.schedule_once(self.reset_ui, 0)
     
     def run_photo_upscale(self, input_path, output_path):
-        # FFmpeg ile fotoğraf yükseltme
-        command = [
-            'ffmpeg',
-            '-i', input_path,
-            '-vf', f'scale={self.selected_resolution}:flags=lanczos',
-            '-q:v', '2',  # Yüksek kalite için
-            output_path
-        ]
-        
         try:
-            subprocess.run(command, check=True)
+            width, height = (
+                int(value)
+                for value in self.selected_resolution.split(':', maxsplit=1)
+            )
+            with Image.open(input_path) as source:
+                source.load()
+                resized = ImageOps.contain(
+                    source,
+                    (width, height),
+                    method=Image.Resampling.LANCZOS,
+                )
+                if output_path.lower().endswith(('.jpg', '.jpeg')) and resized.mode not in {'RGB', 'L'}:
+                    resized = resized.convert('RGB')
+                resized.save(output_path, quality=95)
             self.show_success_message(output_path)
-        except FileNotFoundError:
-            self.show_error_message('FFmpeg bulunamadı. Lütfen sisteminize kurup PATH\'e eklediğinizden emin olun.')
-        except subprocess.CalledProcessError as e:
-            self.show_error_message(f'FFmpeg hatası oluştu: {e}')
+        except (OSError, ValueError) as error:
+            self.show_error_message(f'Fotoğraf işlenemedi: {error}')
         finally:
             # UI güncellemelerini ana thread'de yap
             from kivy.clock import Clock
