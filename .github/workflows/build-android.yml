@@ -45,8 +45,6 @@ jobs:
           python -m pip install 'buildozer==1.5.0' 'Cython<3'
 
       - name: Build a real debug APK (no release signing credentials)
-        env:
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
         run: |
           set -euo pipefail
           buildozer -v android debug
