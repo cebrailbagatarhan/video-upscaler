@@ -46,8 +46,14 @@ jobs:
 
       - name: Build a real debug APK (no release signing credentials)
         run: |
-          set -euo pipefail
-          buildozer -v android debug
+          # sdkmanager may prompt for Android SDK licenses in a headless runner.
+          # Capture the Buildozer exit code (rather than treating the 'yes' pipe as success).
+          set -uo pipefail
+          set +e
+          yes | buildozer -v android debug
+          build_status=${PIPESTATUS[1]}
+          set -e
+          if [ "$build_status" -ne 0 ]; then exit "$build_status"; fi
           test -n "$(find bin -maxdepth 1 -type f -name '*-debug.apk' -print -quit)"
           ls -lh bin/*-debug.apk
 
