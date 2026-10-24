@@ -55,7 +55,7 @@ short_description = Upscale videos and photos to higher resolutions
 
 # (str) The path to the user's local bin directory.
 # If not set, Buildozer will try to detect it.
-user.local_bin = /home/cebra/.local/bin
+# Keep Buildozer paths machine-independent.
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
@@ -137,16 +137,14 @@ android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 android.release_artifact = aab
 
 # (str) Path to a custom keystore for the release build
-android.release_keystore = video-upscaler-release.keystore
+# Release signing must be configured outside Git (local Buildozer spec / secure CI secrets).
+# The debug CI workflow must never use production signing credentials.
 
 # (str) Password for the keystore
-android.release_keystore_passwd = cebrail23
 
 # (str) Key alias for the keystore
-android.release_key_alias = video_upscaler_alias
 
 # (str) Password for the key
-android.release_key_passwd = cebrail23
 
 [gradle]
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
