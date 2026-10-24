@@ -4,6 +4,13 @@
 echo "=== Play Store Release Builder ==="
 echo ""
 
+# Never mistake an unsigned / leaked-key build for a Play Store release.
+# A new private local signing configuration is required; do not commit it.
+if ! grep -Eq '^[[:space:]]*android\.release_keystore[[:space:]]*=[[:space:]]*[^[:space:]#]+' buildozer.spec || ! grep -Eq '^[[:space:]]*android\.release_keystore_passwd[[:space:]]*=[[:space:]]*[^[:space:]#]+' buildozer.spec; then
+    echo "ERROR: Release signing is not configured. See SECURITY.md."
+    exit 1
+fi
+
 # Gerekli kontroller
 if [ ! -f "buildozer.spec" ]; then
     echo "❌ HATA: buildozer.spec dosyası bulunamadı!"

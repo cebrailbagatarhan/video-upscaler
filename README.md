@@ -3,7 +3,7 @@
 Professional video and photo upscaling application for Android devices.
 
 ## Build Status
-🚀 Building APK via GitHub Actions...
+GitHub Actions attempts a real **debug APK build** and fails if no APK is produced. Check the workflow result; a successful build does not verify the app works on an Android device. Release signing is not configured in this public repository (see [SECURITY.md](SECURITY.md)).
 
 ## Features
 

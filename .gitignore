@@ -1,0 +1,15 @@
+# Do not commit Android signing material, binary builds or local secrets.
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+bin/
+.buildozer/
+.venv/
+__pycache__/
+*.pyc
