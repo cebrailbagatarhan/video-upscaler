@@ -26,6 +26,12 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 requirements = python3,kivy,pillow,plyer
 
+# Pin p4a to the reviewed fix for corrupt pip in Android build venvs.
+# Upstream PR #3360: clears the venv and avoids pip self-upgrade.
+# Do not float to the untested branch HEAD in CI.
+p4a.branch = develop
+p4a.commit = 0382d27de2f7315ed98e74884bafb30365decdee
+
 # (str) Supported orientation (landscape, sensorLandscape, portrait or sensorPortrait)
 orientation = portrait
 
