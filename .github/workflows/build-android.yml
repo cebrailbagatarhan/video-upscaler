@@ -34,6 +34,18 @@ jobs:
             libtinfo5 cmake libffi-dev libssl-dev patchelf \
             build-essential python3-dev
 
+      # Android Gradle Plugin requires JDK 17; runner default can be Java 11.
+      - name: Configure Java 17 for Android Gradle Plugin
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Verify active Java runtime
+        run: |
+          java -version
+          test "$(javac -version 2>&1 | awk '{print $2}' | cut -d. -f1)" = '17'
+
       - name: Python and Buildozer
         uses: actions/setup-python@v5
         with:
