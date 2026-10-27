@@ -1,0 +1,25 @@
+name: Resolution preview tests
+
+on:
+  pull_request:
+    paths:
+      - 'resolution_preview.py'
+      - 'tests/test_resolution_preview.py'
+      - '.github/workflows/resolution-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_resolution_preview.py' -v
+      - name: Syntax check
+        run: python -m py_compile resolution_preview.py tests/test_resolution_preview.py
