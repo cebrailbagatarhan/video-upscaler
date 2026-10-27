@@ -1,61 +1,37 @@
-# GitHub Codespaces ile APK Oluşturma Rehberi
+# Android Build Notes
 
-Bu yöntem Windows'ta sorun yaşıyorsanız en kolay çözümdür.
+Two GitHub Actions workflows exist: `Build Android debug APK` runs
+`buildozer android debug` and fails unless a real `*-debug.apk` is produced;
+`Validate Android source` checks Python syntax, the Lanczos resize behaviour and
+secret hygiene. A green build only proves the APK compiled, not that it works on
+a device. Never label either result as a release build.
 
-## Adım 1: GitHub'a Proje Yükleme
+## Reproducible debug-build checklist
 
-1. **GitHub hesabı açın** (eğer yoksa): https://github.com
-2. **Yeni repository oluşturun**: "video-upscaler" adında
-3. **Dosyaları yükleyin**:
-   - main.py
-   - buildozer.spec
-   - requirements.txt
-   - README.md
+Use a supported 64-bit Linux environment and the current Buildozer /
+python-for-android prerequisites. Follow the upstream documentation (CI uses JDK 17 and the
+p4a commit pinned in `buildozer.spec`):
 
-## Adım 2: Codespace Açma
+- https://buildozer.readthedocs.io/
+- https://python-for-android.readthedocs.io/
 
-1. **Repository sayfasında** yeşil "Code" butonuna tıklayın
-2. **"Codespaces" sekmesini** seçin
-3. **"Create codespace on main"** tıklayın
-4. **2-3 dakika bekleyin** (otomatik kurulum)
-
-## Adım 3: APK Oluşturma
-
-Codespace açıldığında terminal'de şu komutları çalıştırın:
+Then run:
 
 ```bash
-# Gerekli paketleri kur
-sudo apt update
-sudo apt install -y openjdk-8-jdk
-pip install kivy buildozer cython
-
-# APK oluştur
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install buildozer
 buildozer android debug
 ```
 
-## Adım 4: APK İndirme
+A successful compile is not sufficient for release. Install the generated debug
+APK on physical devices and verify startup, file permissions, photo selection,
+resize output and error handling.
 
-1. **Sol panelde** "Explorer" sekmesini açın
-2. **bin/ klasörüne** gidin
-3. **APK dosyasına sağ tıklayın**
-4. **"Download"** seçin
+## Release builds
 
-## Avantajları:
-✅ Windows'ta sorun yok
-✅ Otomatik kurulum
-✅ Ücretsiz (aylık 120 saat)
-✅ Güçlü sunucu
-✅ Hızlı build
-
-## Dosya Yapısı:
-```
-repository/
-├── main.py
-├── buildozer.spec
-├── requirements.txt
-├── README.md
-└── bin/ (oluşacak)
-    └── *.apk
-```
-
-Bu yöntem %100 çalışır ve Windows'ta herhangi bir kurulum gerektirmez!
+Do not build a release with the historical key. Rotate it first and configure the
+replacement only through protected local or CI secrets as described in
+[`SECURITY.md`](SECURITY.md). Before Play submission, verify the current target
+API policy and produce an AAB from the reviewed commit.

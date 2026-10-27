@@ -1,88 +1,58 @@
-# Video Resolution Scaler — FFmpeg/Lanczos
+# Video Photo Resizer
 
-Yerel video ve fotoğraf dosyalarının çıktı çözünürlüğünü FFmpeg'in Lanczos filtresiyle değiştiren deneysel masaüstü/Android arayüzü.
+Kivy tabanlı bir Lanczos yeniden örnekleme uygulaması. Bu proje bir yapay zekâ
+veya super-resolution modeli içermez; yeni ayrıntı üretmez. Fotoğrafları Pillow
+ile, masaüstündeki videoları ise sistemde kurulu FFmpeg ile daha büyük ya da
+daha küçük çözünürlüklere ölçekler.
 
-> [!IMPORTANT]
-> Bu proje **AI upscaler veya super-resolution modeli değildir**. Kodda Real-ESRGAN, SwinIR ya da öğrenilmiş bir restorasyon ağı yoktur. `scale=...:flags=lanczos` ile klasik yeniden örnekleme yapar. 720p bir videoyu 4K boyutlarına çıkarmak yeni gerçek detay üretmez.
+## Gerçek yetenekler
 
-## Ne yapıyor?
+- Fotoğraf: JPG, JPEG, PNG, BMP ve TIFF; Pillow/Lanczos ile en-boy oranını korur.
+- Video (masaüstü): FFmpeg bulunduğunda MP4, AVI, MKV, MOV, WMV ve FLV girdileri;
+  Lanczos ölçekleme, H.264 video ve AAC ses çıktısı.
+- İşlem cihazda çalışır; uygulama kodunda yükleme veya analiz servisi yoktur.
+- Tek dosya işlenir. Batch processing, AI enhancement ve gerçek zamanlı
+  ilerleme göstergesi henüz yoktur.
 
-| Alan | Mevcut uygulama |
-| --- | --- |
-| Video ölçekleme | FFmpeg `scale` filtresi + Lanczos |
-| Fotoğraf ölçekleme | FFmpeg `scale` filtresi + Lanczos |
-| UI | Kivy; ayrıca eski Tkinter prototipi (`1.py`) |
-| İşleme | Yerel cihazda subprocess ile FFmpeg |
-| AI inference | Yok |
-| Kalite benchmark'ı | Henüz yok |
+Ölçekleme, kaynak görüntünün gerçek ayrıntısını artırmaz. Düşük çözünürlüklü
+girdiler büyütüldüğünde daha fazla piksel elde edilir; daha fazla gerçek bilgi
+elde edilmez.
 
-Desteklenen formatlar kullanılan FFmpeg build'ine bağlıdır. UI; MP4/AVI/MKV/MOV/WMV ve JPG/JPEG/PNG/BMP/TIFF uzantılarını seçmeye izin verir, fakat codec uyumluluğu ayrıca test edilmelidir.
-
-## Yerel kullanım
-
-Python ve FFmpeg kurulu olmalıdır:
+## Masaüstünde çalıştırma
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows PowerShell: .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+# Linux/macOS: source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+pip install -r requirements.txt
 python main.py
 ```
 
-FFmpeg'in `PATH` üzerinde olduğunu doğrulayın:
+Video işleme için `ffmpeg` çalıştırılabilir dosyası ayrıca kurulmalı ve PATH
+içinde bulunmalıdır. Fotoğraf işleme FFmpeg gerektirmez.
 
-```bash
-ffmpeg -version
-```
+## Android durumu
 
-## Android build durumu
+Android paketi deneyseldir. Fotoğraf yeniden boyutlandırma Pillow ile paketlenir;
+video işleme ise APK içinde bir FFmpeg çalıştırılabilir dosyası bulunmadığından
+Android'de bilerek devre dışıdır. Uygulama bu durumu işlem başlamadan açıkça
+bildirir. Dosya erişimi ve mağaza dağıtımı fiziksel cihaz üzerinde ayrıca test
+edilmelidir.
 
-`Build Android debug APK` GitHub Actions akışı `buildozer android debug` çalıştırır ve APK üretilmezse başarısız olur; başarılı bir build uygulamanın bir Android cihazda çalıştığını kanıtlamaz (özellikle harici `ffmpeg` çalıştırılabilir dosyası paketlenmediği sürece). `Validate Android source` akışı ise kaynak sentaksını ve release-secret hijyenini doğrular. Android/Kivy paketleme için Linux/WSL, Java 17, Android SDK/NDK ve Buildozer gerekir.
-
-Debug build:
+`buildozer.spec` Android API 28 / NDK 21e ve sabitlenmiş bir python-for-android commit'i kullanır. Güncel Google Play gereksinimlerini ve python-for-android uyumluluğunu her sürüm öncesinde tekrar doğrulayın.
 
 ```bash
 buildozer android debug
 ```
 
-Release build için imzalama bilgileri repoda tutulmaz. `build_playstore.sh` şu ortam değişkenlerini zorunlu kılar:
+`Build Android debug APK` CI akışı `buildozer android debug` çalıştırır ve APK üretilmezse başarısız olur; başarılı bir build uygulamanın cihazda çalıştığını kanıtlamaz. `Validate Android source` akışı Python sözdizimini, Lanczos yeniden boyutlandırma davranışını ve repoda imzalama/build artifact'i bulunmadığını doğrular.
 
-```bash
-export P4A_RELEASE_KEYSTORE=/secure/outside-repo/upload-key.keystore
-export P4A_RELEASE_KEYSTORE_PASSWD='...'
-export P4A_RELEASE_KEYALIAS='...'
-export P4A_RELEASE_KEYALIAS_PASSWD='...'
-./build_playstore.sh
-```
+## Release güvenliği
 
-Değerleri shell history'ye yazmak yerine yerel secret manager veya CI secret store kullanın. Keystore dosyasını repo dışında saklayın. Üretilen `.apk`/`.aab` dosyaları kaynak kontrolüne değil release artifact alanına gönderilmelidir.
+Release anahtarı veya parolası repoya eklenmemelidir. Önceden yayınlanmış anahtar
+compromised kabul edilmelidir. Rotasyon ve history purge adımları için
+[`SECURITY.md`](SECURITY.md) dosyasını okuyun.
 
-## Güvenlik
+## Lisans
 
-Release keystore, signing password veya imzalı binary commit edilmemelidir. Kontrol:
-
-```bash
-python scripts/check_release_secrets.py
-```
-
-Geçmişte repoya eklenmiş bir signing key yalnızca son commit'ten silinerek güvenli hale gelmez; kullanıldıysa compromised kabul edilmeli ve rotate edilmelidir. Ayrıntı için [`SECURITY.md`](SECURITY.md) dosyasına bakın.
-
-## Kaliteyi nasıl ölçmeli?
-
-Lanczos için dürüst baseline:
-
-- aynı kaynak klip/fotoğraf ve aynı hedef çözünürlük
-- süre, CPU/RAM kullanımı ve çıktı boyutu
-- bilinen yüksek çözünürlüklü referanstan oluşturulan düşük çözünürlüklü giriş
-- PSNR ve SSIM; algısal karşılaştırma için LPIPS
-
-AI özelliği eklenecekse Real-ESRGAN/SwinIR gibi model adı, ağırlık lisansı, checkpoint hash'i ve cihaz açıkça yazılmalı; aynı girişlerde Lanczos'a karşı kalite ve hız tablosu yayımlanmalıdır. Bu ölçümler yapılmadan “professional enhancement” veya “AI quality” iddiası kullanılmamalıdır.
-
-## Sınırlamalar
-
-- Klasik scaling sıkıştırma artefaktlarını veya bulanıklığı güvenilir biçimde geri getirmez.
-- Büyük çözünürlükler işlem süresi ve depolama maliyetini ciddi biçimde artırabilir.
-- Android cihazda FFmpeg binary/codec bulunabilirliği build'e bağlıdır.
-- Debug APK build'i CI'da denenir, fakat cihaz üzerinde FFmpeg ile çalıştığı doğrulanmamıştır; doğrulanmış bir release (AAB) pipeline'ı yoktur.
-- Kalite ve hız için commit edilmiş benchmark sonucu yoktur.
-
+MIT License.

@@ -17,6 +17,7 @@ artifacts/
 *.pfx
 *.pem
 *.key
+keystore.properties
 
 # Generated source bundles
 *.zip
