@@ -1,15 +1,34 @@
-# Do not commit Android signing material, binary builds or local secrets.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Buildozer / Android output
+.buildozer/
+bin/
+artifacts/
+*.apk
+*.aab
+
+# Release signing material
 *.keystore
 *.jks
 *.p12
 *.pfx
 *.pem
 *.key
+keystore.properties
+
+# Generated source bundles
+*.zip
+
+# Local configuration and secrets
 .env
 .env.*
 !.env.example
-bin/
-.buildozer/
-.venv/
-__pycache__/
-*.pyc
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

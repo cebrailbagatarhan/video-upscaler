@@ -48,10 +48,10 @@ fullscreen = 0
 author = Video Upscaler Team
 
 # (str) Application description
-description = Professional video and photo upscaling app with multiple resolution options
+description = Lanczos-based photo resizer and desktop FFmpeg video scaler
 
 # (str) Short description (max 80 characters)
-short_description = Upscale videos and photos to higher resolutions
+short_description = Resize photos and scale videos with Lanczos filtering
 
 [buildozer]
 
@@ -118,9 +118,6 @@ android.accept_sdk_license = True
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.archs = arm64-v8a, armeabi-v7a
 
-# (list) Android application meta-data to set (key=value format)
-android.meta_data = com.google.android.gms.version=@integer/google_play_services_version
-
 # (list) Android library project to add (will be added in the
 # project.properties automatically.)
 #android.library_references = @aar/some-library
@@ -142,15 +139,11 @@ android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 # (str) Android signing mode: debug or release
 android.release_artifact = aab
 
-# (str) Path to a custom keystore for the release build
-# Release signing must be configured outside Git (local Buildozer spec / secure CI secrets).
-# The debug CI workflow must never use production signing credentials.
-
-# (str) Password for the keystore
-
-# (str) Key alias for the keystore
-
-# (str) Password for the key
+# Release signing credentials are intentionally not stored in this file.
+# Set P4A_RELEASE_KEYSTORE, P4A_RELEASE_KEYSTORE_PASSWD,
+# P4A_RELEASE_KEYALIAS, and P4A_RELEASE_KEYALIAS_PASSWD in the local/CI environment
+# (see build_playstore.sh and SECURITY.md). The debug CI workflow must never use
+# production signing credentials.
 
 [gradle]
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
