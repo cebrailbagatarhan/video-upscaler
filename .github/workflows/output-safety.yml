@@ -1,0 +1,25 @@
+name: Output safety checks
+
+on:
+  pull_request:
+    paths:
+      - 'output_safety.py'
+      - 'tests/test_output_safety.py'
+      - 'main.py'
+      - 'video_upscaler_kivy.py'
+      - '1.py'
+      - '.github/workflows/output-safety.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_output_safety.py' -v
+      - name: Syntax checks
+        run: python -m py_compile output_safety.py main.py video_upscaler_kivy.py 1.py
