@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import subprocess # Komut satırı komutlarını çalıştırmak için
 
+from output_safety import validate_output_path
+
 # Video çözünürlük seçenekleri
 video_resolution_options = {
     "4K (2160p)": "3840:2160",
@@ -98,11 +100,17 @@ def upscale_video():
     )
     if not output_path:
         return
+    try:
+        validate_output_path(input_path, output_path)
+    except ValueError as error:
+        messagebox.showerror("Hata", str(error))
+        return
 
     if current_file_type == 'photo':
         # Fotoğraf işleme
         command = [
             'ffmpeg',
+            '-nostdin', '-n',
             '-i', input_path,
             '-vf', f'scale={selected_resolution_value}:flags=lanczos',
             '-q:v', '2',  # Yüksek kalite için
@@ -113,6 +121,7 @@ def upscale_video():
         # Video işleme
         command = [
             'ffmpeg',
+            '-nostdin', '-n',
             '-i', input_path,
             '-vf', f'scale={selected_resolution_value}:flags=lanczos',
             '-c:v', 'libx264',

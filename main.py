@@ -11,6 +11,7 @@ import os
 import shutil
 from threading import Thread
 
+from output_safety import validate_output_path
 from PIL import Image, ImageOps
 
 __version__ = "1.0"
@@ -320,11 +321,12 @@ class VideoUploaderApp(App):
     
     def on_save_location_selected(self, output_path):
         input_path = self.input_text.text
-
-        if os.path.abspath(input_path) == os.path.abspath(output_path):
-            MessagePopup('Hata', 'Çıktı dosyası giriş dosyasından farklı olmalıdır.').open()
+        try:
+            validate_output_path(input_path, output_path)
+        except ValueError as error:
+            MessagePopup('Hata', str(error)).open()
             return
-        
+
         # Yükseltme işlemini arka planda başlat
         self.upscale_btn.disabled = True
         file_type_text = 'Fotoğraf' if self.current_file_type == 'photo' else 'Video'
@@ -350,7 +352,7 @@ class VideoUploaderApp(App):
         command = [
             ffmpeg_path,
             '-nostdin',
-            '-y',
+            '-n',
             '-hide_banner',
             '-loglevel', 'error',
             '-i', input_path,

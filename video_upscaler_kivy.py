@@ -10,6 +10,8 @@ import subprocess
 import os
 from threading import Thread
 
+from output_safety import validate_output_path
+
 class FileChooserPopup(Popup):
     def __init__(self, callback, **kwargs):
         super().__init__(**kwargs)
@@ -298,7 +300,12 @@ class VideoUploaderApp(App):
     
     def on_save_location_selected(self, output_path):
         input_path = self.input_text.text
-        
+        try:
+            validate_output_path(input_path, output_path)
+        except ValueError as error:
+            MessagePopup('Hata', str(error)).open()
+            return
+
         # Yükseltme işlemini arka planda başlat
         self.upscale_btn.disabled = True
         file_type_text = 'Fotoğraf' if self.current_file_type == 'photo' else 'Video'
@@ -315,6 +322,7 @@ class VideoUploaderApp(App):
     def run_ffmpeg(self, input_path, output_path):
         command = [
             'ffmpeg',
+            '-nostdin', '-n',
             '-i', input_path,
             '-vf', f'scale={self.selected_resolution}:flags=lanczos',
             '-c:v', 'libx264',
@@ -339,6 +347,7 @@ class VideoUploaderApp(App):
         # FFmpeg ile fotoğraf yükseltme
         command = [
             'ffmpeg',
+            '-nostdin', '-n',
             '-i', input_path,
             '-vf', f'scale={self.selected_resolution}:flags=lanczos',
             '-q:v', '2',  # Yüksek kalite için
