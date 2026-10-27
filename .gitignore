@@ -14,6 +14,9 @@ artifacts/
 *.keystore
 *.jks
 *.p12
+*.pfx
+*.pem
+*.key
 
 # Generated source bundles
 *.zip
@@ -28,4 +31,3 @@ artifacts/
 .vscode/
 .DS_Store
 Thumbs.db
-

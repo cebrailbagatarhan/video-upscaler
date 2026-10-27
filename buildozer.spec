@@ -26,6 +26,12 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 requirements = python3,kivy,pillow,plyer
 
+# Pin p4a to the reviewed fix for corrupt pip in Android build venvs.
+# Upstream PR #3360: clears the venv and avoids pip self-upgrade.
+# Do not float to the untested branch HEAD in CI.
+p4a.branch = develop
+p4a.commit = 0382d27de2f7315ed98e74884bafb30365decdee
+
 # (str) Supported orientation (landscape, sensorLandscape, portrait or sensorPortrait)
 orientation = portrait
 
@@ -55,7 +61,7 @@ short_description = Upscale videos and photos to higher resolutions
 
 # (str) The path to the user's local bin directory.
 # If not set, Buildozer will try to detect it.
-user.local_bin = /home/cebra/.local/bin
+# Keep Buildozer paths machine-independent.
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
@@ -138,10 +144,9 @@ android.release_artifact = aab
 
 # Release signing credentials are intentionally not stored in this file.
 # Set P4A_RELEASE_KEYSTORE, P4A_RELEASE_KEYSTORE_PASSWD,
-# P4A_RELEASE_KEYALIAS, and P4A_RELEASE_KEYALIAS_PASSWD in the local/CI environment.
-
-
-
+# P4A_RELEASE_KEYALIAS, and P4A_RELEASE_KEYALIAS_PASSWD in the local/CI environment
+# (see build_playstore.sh and SECURITY.md). The debug CI workflow must never use
+# production signing credentials.
 
 [gradle]
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
@@ -154,5 +159,3 @@ android.gradle_repositories = google(), mavenCentral()
 
 # (str) Gradle dependencies
 android.gradle_dependencies = androidx.appcompat:appcompat:1.4.2, androidx.core:core:1.8.0
-
-

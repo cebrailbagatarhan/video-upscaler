@@ -37,7 +37,7 @@ ffmpeg -version
 
 ## Android build durumu
 
-GitHub Actions akışı APK üretildiğini iddia etmez; yalnızca kaynak sentaksını ve release-secret hijyenini doğrular. Android/Kivy paketleme için Linux/WSL, Java, Android SDK/NDK ve Buildozer gerekir.
+`Build Android debug APK` GitHub Actions akışı `buildozer android debug` çalıştırır ve APK üretilmezse başarısız olur; başarılı bir build uygulamanın bir Android cihazda çalıştığını kanıtlamaz (özellikle harici `ffmpeg` çalıştırılabilir dosyası paketlenmediği sürece). `Validate Android source` akışı ise kaynak sentaksını ve release-secret hijyenini doğrular. Android/Kivy paketleme için Linux/WSL, Java 17, Android SDK/NDK ve Buildozer gerekir.
 
 Debug build:
 
@@ -83,6 +83,6 @@ AI özelliği eklenecekse Real-ESRGAN/SwinIR gibi model adı, ağırlık lisans�
 - Klasik scaling sıkıştırma artefaktlarını veya bulanıklığı güvenilir biçimde geri getirmez.
 - Büyük çözünürlükler işlem süresi ve depolama maliyetini ciddi biçimde artırabilir.
 - Android cihazda FFmpeg binary/codec bulunabilirliği build'e bağlıdır.
-- Repo şu anda doğrulanmış APK/AAB üretim pipeline'ı sunmaz.
+- Debug APK build'i CI'da denenir, fakat cihaz üzerinde FFmpeg ile çalıştığı doğrulanmamıştır; doğrulanmış bir release (AAB) pipeline'ı yoktur.
 - Kalite ve hız için commit edilmiş benchmark sonucu yoktur.
 
