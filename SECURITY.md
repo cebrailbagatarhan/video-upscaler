@@ -1,37 +1,34 @@
-# Security
+# Security and Android build notes
 
-## Release signing
+## Exposed release signing material
 
-Release keystores, aliases and passwords must never be committed. Keep them in a
-password manager or protected CI secret store and expose them only to the release
-job. Debug builds must use a disposable debug key.
+Earlier public commits included a release signing keystore and its passwords in `buildozer.spec`. The key and passwords must be considered **compromised**. Their removal from the current code is not a rotation or Git history erasure.
 
-This repository previously contained a release keystore and its credentials.
-Removing those files from the current branch does **not** remove them from Git
-history or third-party clones. Treat that key as compromised:
+1. Check whether this key was used to sign any distributed Android package / Google Play upload.
+2. If used, follow Google Play's applicable upload-key reset or signing-key migration process; coordinate any direct-APK upgrade implications.
+3. Generate a new keystore **outside this repository**, using a unique password, and store it in a secure credential manager.
+4. Supply signing configuration through the `P4A_RELEASE_KEYSTORE`, `P4A_RELEASE_KEYSTORE_PASSWD`, `P4A_RELEASE_KEYALIAS` and `P4A_RELEASE_KEYALIAS_PASSWD` environment variables (local shell or approved CI secret storage). Do not add passwords to `buildozer.spec`, shell scripts, ZIP files, logs, or public build artifacts.
+5. Review Git history, forks and downloadable artifacts. History rewriting alone does not revoke compromised keys.
 
-1. Stop signing releases with the exposed key.
-2. Create a new release/upload key with a unique password.
-3. Follow the store's official key-upgrade or upload-key-reset process.
-4. Replace protected CI secrets with the rotated values.
-5. Purge the old material from Git history using a coordinated history rewrite,
-   then invalidate caches and notify every collaborator to re-clone.
+## Actual Android debug build
 
-For local python-for-android signing, use environment variables rather than
-tracked configuration:
+GitHub Actions workflow `.github/workflows/build-android.yml` now calls `buildozer -v android debug` and uploads `bin/*-debug.apk` only if a real APK is produced. The workflow fails when compilation fails; a text metadata artifact is **not** an APK.
 
-```bash
-export P4A_RELEASE_KEYSTORE=/secure/path/release.keystore
-export P4A_RELEASE_KEYSTORE_PASSWD='from-a-secret-manager'
-export P4A_RELEASE_KEYALIAS='release_alias'
-export P4A_RELEASE_KEYALIAS_PASSWD='from-a-secret-manager'
-buildozer android release
+```sh
+python -m pip install 'buildozer==1.5.0' 'Cython<3'
+buildozer -v android debug
 ```
 
-Do not paste real secret values into shell history. Prefer your CI provider's
-masked-secret mechanism or a temporary environment file outside the repository.
+Debug builds need no release keystore. Their existence is not proof that FFmpeg works on Android: `main.py` invokes an external `ffmpeg` executable, which must be explicitly packaged/configured for production use and verified on a real device.
+
+## Release builds
+
+`build_playstore.sh` must only be used after setting up a **new private signing configuration** (the `P4A_RELEASE_*` variables above) and validating the build pipeline. The repository no longer provides release signing keys or passwords; the script refuses to run without them.
+
+## Regression check
+
+`python scripts/check_release_secrets.py` (run by the `Validate Android source` workflow) rejects tracked `.keystore`, `.jks`, `.p12`, `.apk`, `.aab` and `.zip` artifacts plus non-empty signing values in Buildozer configuration.
 
 ## Reporting
 
-Report suspected vulnerabilities privately to the repository owner. Do not open
-a public issue containing credentials, private files or exploit details.
+Do not open a public issue containing credentials, private keys, personal data, or exploitable details. Contact the repository owner privately through the contact method listed on their GitHub profile.

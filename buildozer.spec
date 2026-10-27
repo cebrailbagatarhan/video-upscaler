@@ -26,6 +26,12 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 requirements = python3,kivy,pillow,plyer
 
+# Pin p4a to the reviewed fix for corrupt pip in Android build venvs.
+# Upstream PR #3360: clears the venv and avoids pip self-upgrade.
+# Do not float to the untested branch HEAD in CI.
+p4a.branch = develop
+p4a.commit = 0382d27de2f7315ed98e74884bafb30365decdee
+
 # (str) Supported orientation (landscape, sensorLandscape, portrait or sensorPortrait)
 orientation = portrait
 
@@ -55,7 +61,7 @@ short_description = Resize photos and scale videos with Lanczos filtering
 
 # (str) The path to the user's local bin directory.
 # If not set, Buildozer will try to detect it.
-# user.local_bin is intentionally not pinned to a developer-specific path.
+# Keep Buildozer paths machine-independent.
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
@@ -78,13 +84,16 @@ warn_on_root = 1
 #android.whitelist =
 
 # (str) Android NDK version to use
-android.ndk = 28c
+android.ndk = 21e
+
+# (str) Android SDK version to use
+android.sdk = 28
 
 # (str) Android API level to target
-android.api = 36
+android.api = 28
 
 # (str) Minimum API level
-android.minapi = 26
+android.minapi = 21
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
@@ -125,13 +134,16 @@ android.archs = arm64-v8a, armeabi-v7a
 #android.add_libs_mips = libs/android-mips/*.so
 
 # (list) Permissions
-android.permissions = READ_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,READ_MEDIA_VIDEO
+android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 
 # (str) Android signing mode: debug or release
 android.release_artifact = aab
 
-# Signing material is deliberately absent from this tracked file. Configure a
-# rotated keystore only in a protected local/CI environment; see SECURITY.md.
+# Release signing credentials are intentionally not stored in this file.
+# Set P4A_RELEASE_KEYSTORE, P4A_RELEASE_KEYSTORE_PASSWD,
+# P4A_RELEASE_KEYALIAS, and P4A_RELEASE_KEYALIAS_PASSWD in the local/CI environment
+# (see build_playstore.sh and SECURITY.md). The debug CI workflow must never use
+# production signing credentials.
 
 [gradle]
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'

@@ -39,15 +39,13 @@ Android'de bilerek devre dışıdır. Uygulama bu durumu işlem başlamadan aç�
 bildirir. Dosya erişimi ve mağaza dağıtımı fiziksel cihaz üzerinde ayrıca test
 edilmelidir.
 
-`buildozer.spec` API 36'yı hedefler. Güncel Google Play gereksinimlerini ve
-python-for-android uyumluluğunu her sürüm öncesinde tekrar doğrulayın.
+`buildozer.spec` Android API 28 / NDK 21e ve sabitlenmiş bir python-for-android commit'i kullanır. Güncel Google Play gereksinimlerini ve python-for-android uyumluluğunu her sürüm öncesinde tekrar doğrulayın.
 
 ```bash
 buildozer android debug
 ```
 
-CI şu anda APK üretmiş gibi davranmaz; yalnızca Python sözdizimini ve repoda
-imzalama/build artifact'i bulunmadığını doğrular.
+`Build Android debug APK` CI akışı `buildozer android debug` çalıştırır ve APK üretilmezse başarısız olur; başarılı bir build uygulamanın cihazda çalıştığını kanıtlamaz. `Validate Android source` akışı Python sözdizimini, Lanczos yeniden boyutlandırma davranışını ve repoda imzalama/build artifact'i bulunmadığını doğrular.
 
 ## Release güvenliği
 

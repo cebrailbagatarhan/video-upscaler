@@ -1,14 +1,16 @@
 # Android Build Notes
 
-The GitHub Actions workflow validates source and secret hygiene; it does not
-currently produce an APK or AAB. Do not label its artifact or status as an Android
-build.
+Two GitHub Actions workflows exist: `Build Android debug APK` runs
+`buildozer android debug` and fails unless a real `*-debug.apk` is produced;
+`Validate Android source` checks Python syntax, the Lanczos resize behaviour and
+secret hygiene. A green build only proves the APK compiled, not that it works on
+a device. Never label either result as a release build.
 
 ## Reproducible debug-build checklist
 
 Use a supported 64-bit Linux environment and the current Buildozer /
-python-for-android prerequisites. Follow the upstream documentation rather than
-pinning an old JDK or SDK from this repository:
+python-for-android prerequisites. Follow the upstream documentation (CI uses JDK 17 and the
+p4a commit pinned in `buildozer.spec`):
 
 - https://buildozer.readthedocs.io/
 - https://python-for-android.readthedocs.io/

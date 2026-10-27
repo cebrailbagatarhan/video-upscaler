@@ -34,3 +34,4 @@ echo "Building a release artifact with signing values supplied by the environmen
 buildozer android release
 
 echo "Release build completed. Inspect bin/ and verify the signature before upload."
+
