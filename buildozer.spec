@@ -142,15 +142,11 @@ android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 # (str) Android signing mode: debug or release
 android.release_artifact = aab
 
-# (str) Path to a custom keystore for the release build
-# Release signing must be configured outside Git (local Buildozer spec / secure CI secrets).
-# The debug CI workflow must never use production signing credentials.
-
-# (str) Password for the keystore
-
-# (str) Key alias for the keystore
-
-# (str) Password for the key
+# Release signing credentials are intentionally not stored in this file.
+# Set P4A_RELEASE_KEYSTORE, P4A_RELEASE_KEYSTORE_PASSWD,
+# P4A_RELEASE_KEYALIAS, and P4A_RELEASE_KEYALIAS_PASSWD in the local/CI environment
+# (see build_playstore.sh and SECURITY.md). The debug CI workflow must never use
+# production signing credentials.
 
 [gradle]
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
