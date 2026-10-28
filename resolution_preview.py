@@ -50,12 +50,16 @@ def main(argv=None):
         "output": [out_width, out_height],
         "upscale_allowed": not args.no_upscale,
         "ffmpeg_scale_filter": f"scale={out_width}:{out_height}:flags=lanczos",
+        "input_pixels": args.width * args.height,
+        "output_pixels": out_width * out_height,
+        "pixel_ratio": round(out_width * out_height / (args.width * args.height), 3),
     }
     if args.json:
         print(json.dumps(result, ensure_ascii=False))
     else:
         print(f"Preview: {args.width}x{args.height} -> {out_width}x{out_height}")
         print(f"Suggested FFmpeg filter: {result['ffmpeg_scale_filter']}")
+        print(f"Pixel load: {result['output_pixels']:,} output pixels ({result['pixel_ratio']:.3f}x input)")
         print("Preview only: the Android/Kivy application is unchanged.")
     return 0
 
