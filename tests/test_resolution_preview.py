@@ -33,6 +33,30 @@ class ResolutionPreviewTests(unittest.TestCase):
         result = json.loads(output.getvalue())
         self.assertEqual(result["output"], [1280, 720])
         self.assertEqual(result["ffmpeg_scale_filter"], "scale=1280:720:flags=lanczos")
+        self.assertEqual(result["input_pixels"], 1920 * 1080)
+        self.assertEqual(result["output_pixels"], 1280 * 720)
+        self.assertEqual(result["pixel_ratio"], 0.444)
+
+
+    def test_cli_upscale_pixel_ratio(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(main(["640", "480", "1280", "960", "--json"]), 0)
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["pixel_ratio"], 4.0)
+        self.assertEqual(result["output_pixels"], 1280 * 960)
+
+    def test_cli_no_upscale_pixel_ratio(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(main(["640", "480", "1280", "960", "--no-upscale", "--json"]), 0)
+        self.assertEqual(json.loads(output.getvalue())["pixel_ratio"], 1.0)
+
+    def test_text_output_mentions_pixel_load(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(main(["1920", "1080", "1280", "720"]), 0)
+        self.assertIn("Pixel load: 921,600 output pixels", output.getvalue())
 
 
 if __name__ == "__main__":
