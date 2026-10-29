@@ -31,6 +31,18 @@ python main.py
 Video işleme için `ffmpeg` çalıştırılabilir dosyası ayrıca kurulmalı ve PATH
 içinde bulunmalıdır. Fotoğraf işleme FFmpeg gerektirmez.
 
+## Çevrimdışı çözünürlük önizlemesi
+
+Görüntüyü işlemeden, önerilen video boyutunu hesaplayabilirsiniz:
+
+```bash
+python resolution_preview.py 640 360 1920 1080 --max-upscale-factor 1.5 --json
+```
+
+Bu örnekte çıktı `960×540` ile sınırlanır. `--max-upscale-factor` en az
+`1` olmalıdır; verilmezse önceki davranış korunur. `--no-upscale` her zaman
+büyütmeyi engeller. Bu yardımcı araç video dosyası okumaz veya dönüştürmez.
+
 ## Android durumu
 
 Android paketi deneyseldir. Fotoğraf yeniden boyutlandırma Pillow ile paketlenir;
