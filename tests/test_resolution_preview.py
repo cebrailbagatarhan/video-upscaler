@@ -34,6 +34,37 @@ class ResolutionPreviewTests(unittest.TestCase):
         self.assertEqual(result["output"], [1280, 720])
         self.assertEqual(result["ffmpeg_scale_filter"], "scale=1280:720:flags=lanczos")
 
+    def test_max_upscale_factor_caps_enlargement(self):
+        self.assertEqual(
+            plan_dimensions(640, 360, 1920, 1080, max_upscale_factor=1.5),
+            (960, 540),
+        )
+        self.assertEqual(
+            plan_dimensions(640, 360, 1920, 1080, max_upscale_factor=1),
+            (640, 360),
+        )
+
+    def test_no_upscale_overrides_factor_cap(self):
+        self.assertEqual(
+            plan_dimensions(640, 360, 1920, 1080, allow_upscale=False,
+                            max_upscale_factor=3),
+            (640, 360),
+        )
+
+    def test_rejects_invalid_max_upscale_factor(self):
+        for factor in (0, 0.5, float("nan"), float("inf"), True):
+            with self.subTest(factor=factor), self.assertRaises(ValueError):
+                plan_dimensions(640, 360, 1920, 1080, max_upscale_factor=factor)
+
+    def test_cli_reports_capped_dimensions(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(main(["640", "360", "1920", "1080",
+                                   "--max-upscale-factor", "1.5", "--json"]), 0)
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["output"], [960, 540])
+        self.assertEqual(result["max_upscale_factor"], 1.5)
+
 
 if __name__ == "__main__":
     unittest.main()
